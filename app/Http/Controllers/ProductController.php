@@ -29,6 +29,7 @@ class ProductController extends Controller
 
             $category_info = $this->Category->find_by_id($value['category']);
 
+            $formatedProductList[$key]['productId'] = $value['id'];
             $formatedProductList[$key]['productName'] = $value['product_name'];
             $formatedProductList[$key]['categoryName'] = $category_info['category_name'];
 
@@ -92,7 +93,7 @@ class ProductController extends Controller
                 foreach ($resp as $key => $value) {
                     $category = $this->Category->find_by_id($value['category']);
 
-                    $dataList[$key]['id'] = $value['id'];
+                    $dataList[$key]['productId'] = $value['id'];
                     $dataList[$key]['productName'] = $value['product_name'];
                     $dataList[$key]['categoryName'] = $category->category_name;
                     $dataList[$key]['description'] = $value['description'];
@@ -131,6 +132,55 @@ class ProductController extends Controller
                 }
 
                 return $this->AppHelper->responseEntityHandle(1, "Operation Complete", $dataList);
+            } catch (Exception $e) {
+                return $this->AppHelper->responseMessageHandle(0, "Error Occured " . $e->getMessage());
+            }
+        }
+    }
+
+    public function getProductInfoById(Request $request) {
+
+        $productId = (is_null($request->productId) || empty($request->productId)) ? "" : $request->productId;
+
+        if ($productId == "") {
+            return $this->AppHelper->responseMessageHandle(0, "Invalid Product ID");
+        } else {
+
+            try {
+                $product_info = $this->Product->find_product_by_id($productId);
+                $category_info = $this->Category->find_by_id($product_info->category);
+
+                $adminAPI = "https://adminapi.dropshipper.lk/images/";
+
+                $productInfoArray = array();
+                if ($product_info) {
+                    $productInfoArray['productName'] = $product_info->product_name;
+                    $productInfoArray['waranty'] = $product_info->waranty;
+                    $productInfoArray['categoryName'] = $category_info->category_name;
+                    $productInfoArray['description'] = $product_info->description;
+
+                    $decodedImage = json_decode($product_info->images);
+
+                    $productInfoArray['firstImage'] = $adminAPI . $decodedImage->image0;
+
+                    if ($product_info->is_store_pick == 1) {
+                        $productInfoArray['isStorePickAvailable'] = true;
+                    } else {
+                        $productInfoArray['isStorePickAvailable'] = false;
+                    }
+
+                    if ($product_info->stock_count != 0) {
+                        $productInfoArray['stockIn'] = true;
+                    } else {
+                        $productInfoArray['stockIn'] = false;
+                    }
+
+                    $productInfoArray['productWeight'] = $product_info->weight;
+                } else {
+                    return $this->AppHelper->responseMessageHandle(0, "Invalid product ID");
+                }
+
+                return $this->AppHelper->responseEntityHandle(1, "Operation Successfuly.", $productInfoArray);
             } catch (Exception $e) {
                 return $this->AppHelper->responseMessageHandle(0, "Error Occured " . $e->getMessage());
             }

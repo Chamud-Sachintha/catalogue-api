@@ -22,3 +22,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('get-all-products', [ProductController::class, 'getAllProductInfo']);
 Route::post('get-all-caegories', [ProductController::class, 'getAllCategories']);
 Route::post('filter-products-by-category', [ProductController::class, 'filterByCategory']);
+Route::post('get-product-info', [ProductController::class, 'getProductInfoById']);

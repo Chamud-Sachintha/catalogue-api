@@ -20,6 +20,7 @@ class Product extends Model
         'description',
         'supplier_name',
         'stock_count',
+        'weight',
         'images',
         'status',
         'create_time'
@@ -33,5 +34,11 @@ class Product extends Model
 
     public function findAllProducts() {
         return $this->all();
+    }
+
+    public function find_product_by_id($pid) {
+        $map['id'] = $pid;
+
+        return $this->where($map)->first();
     }
 }
